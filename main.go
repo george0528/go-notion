@@ -4,9 +4,11 @@ import (
 	"george0528/go-notion.git/controller"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	godotenv.Load(".env")
     router := gin.Default()
     router.LoadHTMLGlob("templates/*.html")
 
