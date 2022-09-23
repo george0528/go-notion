@@ -32,5 +32,9 @@ func main() {
 		controller.Callback(ctx)
 	})
 
+	router.POST("/search", func(ctx *gin.Context) {
+		controller.SearchNotion(ctx)
+	})
+
 	router.Run()
 }

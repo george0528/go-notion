@@ -12,6 +12,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 定数
+const notionUrl = "https://api.notion.com/v1"
+var myToken string = ""
+
 func Index(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "this is AppController",
@@ -174,4 +178,139 @@ func Callback(c *gin.Context) {
 	}
 
 	fmt.Println(tokenInfo.AccessToken)
+	myToken = tokenInfo.AccessToken
+	c.HTML(200, "home.html", gin.H{})
+}
+
+type SearchRequestBody struct {
+  Query string `json:"query"`
+}
+type SearchResponse struct {
+	Object  string `json:"object"`
+	Results []struct {
+		Object      string      `json:"object"`
+		ID          string      `json:"id"`
+		Cover       interface{} `json:"cover"`
+		Icon        interface{} `json:"icon"`
+		CreatedTime time.Time   `json:"created_time"`
+		CreatedBy   struct {
+			Object string `json:"object"`
+			ID     string `json:"id"`
+		} `json:"created_by"`
+		LastEditedBy struct {
+			Object string `json:"object"`
+			ID     string `json:"id"`
+		} `json:"last_edited_by"`
+		LastEditedTime time.Time `json:"last_edited_time"`
+		Title          []struct {
+			Type string `json:"type"`
+			Text struct {
+				Content string      `json:"content"`
+				Link    interface{} `json:"link"`
+			} `json:"text"`
+			Annotations struct {
+				Bold          bool   `json:"bold"`
+				Italic        bool   `json:"italic"`
+				Strikethrough bool   `json:"strikethrough"`
+				Underline     bool   `json:"underline"`
+				Code          bool   `json:"code"`
+				Color         string `json:"color"`
+			} `json:"annotations"`
+			PlainText string      `json:"plain_text"`
+			Href      interface{} `json:"href"`
+		} `json:"title"`
+		Description []interface{} `json:"description"`
+		IsInline    bool          `json:"is_inline"`
+		Properties  struct {
+			NAMING_FAILED struct {
+				ID   string `json:"id"`
+				Name string `json:"name"`
+				Type string `json:"type"`
+				Date struct {
+				} `json:"date"`
+			} `json:"日付"`
+			NAMING_FAILED0 struct {
+				ID          string `json:"id"`
+				Name        string `json:"name"`
+				Type        string `json:"type"`
+				MultiSelect struct {
+					Options []interface{} `json:"options"`
+				} `json:"multi_select"`
+			} `json:"タグ"`
+			NAMING_FAILED1 struct {
+				ID    string `json:"id"`
+				Name  string `json:"name"`
+				Type  string `json:"type"`
+				Title struct {
+				} `json:"title"`
+			} `json:"名前"`
+		} `json:"properties"`
+		Parent struct {
+			Type      string `json:"type"`
+			Workspace bool   `json:"workspace"`
+		} `json:"parent"`
+		URL      string `json:"url"`
+		Archived bool   `json:"archived"`
+	} `json:"results"`
+	NextCursor     interface{} `json:"next_cursor"`
+	HasMore        bool        `json:"has_more"`
+	Type           string      `json:"type"`
+	PageOrDatabase struct {
+	} `json:"page_or_database"`
+}
+
+func SearchNotion(c *gin.Context) {
+	fmt.Println("test")
+	url := notionUrl + "/search"
+
+	keyword := c.PostForm("keyword")
+	requestBody := new(SearchRequestBody)
+	requestBody.Query = keyword
+
+	// json
+	jsonString, err := json.Marshal(requestBody)
+  if err != nil {
+    fmt.Println(err)
+		return
+  }
+
+	r, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonString))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	timeout := time.Duration(5 * time.Second)
+	client := &http.Client{
+    Timeout: timeout,
+	}
+
+	authorization := "Bearer "
+	authorization += myToken
+	r.Header.Set("Authorization", authorization)
+	r.Header.Set("Notion-Version", "2022-06-28")
+	r.Header.Set("Content-Type", "application/json")
+
+	fmt.Println(r)
+	request, err := client.Do(r)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer request.Body.Close()
+
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		fmt.Println(err)
+		return;
+	}
+
+	var searchResponse SearchResponse
+	if err := json.Unmarshal(body, &searchResponse); err != nil {
+		fmt.Println(err)
+		return;
+	}
+
+	fmt.Println(searchResponse)
 }
