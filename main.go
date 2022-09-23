@@ -24,5 +24,9 @@ func main() {
 		controller.Api(ctx)
 	})
 
+	router.GET("/notion", func(ctx *gin.Context) {
+		controller.Notion(ctx)
+	})
+
 	router.Run()
 }

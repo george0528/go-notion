@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -64,4 +65,25 @@ func Api(c *gin.Context) {
 	}
 
 	fmt.Printf("%+v\n", posts)
+}
+
+func Notion(c *gin.Context) {
+	fmt.Println("test")
+	baseUrl := "https://api.notion.com/v1/oauth/authorize";
+
+	r, err := http.NewRequest("GET", baseUrl, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	params := r.URL.Query()
+	params.Add("client_id", os.Getenv("NOTION_CLIENT_ID"))
+	params.Add("redirect_uri", "http://localhost:8080/callback")
+	params.Add("response_type", "code")
+	r.URL.RawQuery = params.Encode()
+	redirectUrl := r.URL.String()
+	fmt.Println(redirectUrl)
+
+	c.Redirect(http.StatusMovedPermanently, redirectUrl)
 }
