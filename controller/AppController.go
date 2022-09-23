@@ -95,6 +95,28 @@ type RequestBody struct {
   RedirectUri string `json:"redirect_uri"`
 }
 
+type TokenInfo struct {
+	AccessToken   string `json:"access_token"`
+	TokenType     string `json:"token_type"`
+	BotID         string `json:"bot_id"`
+	WorkspaceName string `json:"workspace_name"`
+	WorkspaceIcon string `json:"workspace_icon"`
+	WorkspaceID   string `json:"workspace_id"`
+	Owner         struct {
+		Type string `json:"type"`
+		User struct {
+			Object    string `json:"object"`
+			ID        string `json:"id"`
+			Name      string `json:"name"`
+			AvatarURL string `json:"avatar_url"`
+			Type      string `json:"type"`
+			Person    struct {
+				Email string `json:"email"`
+			} `json:"person"`
+		} `json:" user"`
+	} `json:"owner"`
+}
+
 func Callback(c *gin.Context) {
 	baseUrl := "https://api.notion.com/v1/oauth/token"
 
@@ -145,5 +167,11 @@ func Callback(c *gin.Context) {
 		return;
 	}
 
-	fmt.Println(string(body))
+	var tokenInfo TokenInfo
+	if err := json.Unmarshal(body, &tokenInfo); err != nil {
+		fmt.Println(err)
+		return;
+	}
+
+	fmt.Println(tokenInfo.AccessToken)
 }
