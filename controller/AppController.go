@@ -119,7 +119,7 @@ func Callback(c *gin.Context) {
 		return
 	}
 
-	// Basic認証
+	// 認証
 	clinetId := os.Getenv("NOTION_CLIENT_ID")
 	clientSecret :=  os.Getenv("NOTION_SECRET")
 	request.SetBasicAuth(clinetId, clientSecret)
