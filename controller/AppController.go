@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,7 +26,24 @@ type Post struct {
 func Api(c *gin.Context) {
 	url := "https://api.notion.com/v1/oauth/authorize"
 	url = "https://jsonplaceholder.typicode.com/posts"
-	r, err := http.Get(url)
+
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// クエリパラメータ
+	params := request.URL.Query()
+	params.Add("userId","3")
+	request.URL.RawQuery = params.Encode()
+
+	timeout := time.Duration(5 * time.Second)
+	client := &http.Client{
+    Timeout: timeout,
+	}
+
+	r, err := client.Do(request)
 	if err != nil {
 		fmt.Println(err)
 		return
