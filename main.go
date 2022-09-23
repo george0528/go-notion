@@ -20,5 +20,9 @@ func main() {
 		controller.Index(ctx)
 	})
 
+	router.GET("/api", func(ctx *gin.Context) {
+		controller.Api(ctx)
+	})
+
 	router.Run()
 }
