@@ -28,5 +28,9 @@ func main() {
 		controller.Notion(ctx)
 	})
 
+	router.GET("/callback", func(ctx *gin.Context) {
+		controller.Callback(ctx)
+	})
+
 	router.Run()
 }
