@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select</title>
+</head>
+<body>
+  <h1>Select</h1>
+  <form action="/schedule/{{.id}}">
+    <label for="">name</label>
+    <input type="text" name="name">
+    <label for="">最初の日</label>
+    <input type="date" name="firstDay">
+    <label for="">間隔</label>
+    <input type="number" name="interval">
+    <label for="">回数</label>
+    <input type="number" value="time">
+    <button>決定</button>
+  </form>
+</body>
+</html>

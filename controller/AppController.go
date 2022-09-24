@@ -346,3 +346,10 @@ func SearchNotion(c *gin.Context) {
 		"titles": titles,
 	})
 }
+
+func Select(c *gin.Context)  {
+	id := c.Param("id")
+	c.HTML(200, "select.html", gin.H{
+		"id": id,
+	})
+}

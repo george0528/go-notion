@@ -36,5 +36,9 @@ func main() {
 		controller.SearchNotion(ctx)
 	})
 
+	router.GET("/select/:id", func(ctx *gin.Context) {
+		controller.Select(ctx)
+	})
+
 	router.Run()
 }

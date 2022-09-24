@@ -16,9 +16,8 @@
     <ul>
       {{range .titles}}
       <li>
-        <form action="/select" method="get" style="display: flex;">
+        <form action="/select/{{.Id}}" method="get" style="display: flex;">
           <div>{{.Text}}</div>
-          <input value="{{.Id}}" type="hidden" name="id">
           <button>選択</button>
         </form>
       </li>
