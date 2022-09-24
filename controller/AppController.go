@@ -10,10 +10,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // 定数
 const notionUrl = "https://api.notion.com/v1"
+
 var myToken string = ""
 
 func Index(c *gin.Context) {
@@ -41,12 +43,12 @@ func Api(c *gin.Context) {
 
 	// クエリパラメータ
 	params := request.URL.Query()
-	params.Add("userId","3")
+	params.Add("userId", "3")
 	request.URL.RawQuery = params.Encode()
 
 	timeout := time.Duration(5 * time.Second)
 	client := &http.Client{
-    Timeout: timeout,
+		Timeout: timeout,
 	}
 
 	r, err := client.Do(request)
@@ -60,13 +62,13 @@ func Api(c *gin.Context) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println(err)
-		return;
+		return
 	}
 
 	var posts []Post
 	if err := json.Unmarshal(body, &posts); err != nil {
 		fmt.Println(err)
-		return;
+		return
 	}
 
 	fmt.Printf("%+v\n", posts)
@@ -74,7 +76,7 @@ func Api(c *gin.Context) {
 
 func Notion(c *gin.Context) {
 	fmt.Println("test")
-	baseUrl := "https://api.notion.com/v1/oauth/authorize";
+	baseUrl := "https://api.notion.com/v1/oauth/authorize"
 
 	r, err := http.NewRequest("GET", baseUrl, nil)
 	if err != nil {
@@ -94,9 +96,9 @@ func Notion(c *gin.Context) {
 }
 
 type RequestBody struct {
-  Code string `json:"code"`
-  GrantType string `json:"grant_type"`
-  RedirectUri string `json:"redirect_uri"`
+	Code        string `json:"code"`
+	GrantType   string `json:"grant_type"`
+	RedirectUri string `json:"redirect_uri"`
 }
 
 type TokenInfo struct {
@@ -133,10 +135,10 @@ func Callback(c *gin.Context) {
 
 	// json
 	jsonString, err := json.Marshal(requestBody)
-  if err != nil {
-    fmt.Println(err)
+	if err != nil {
+		fmt.Println(err)
 		return
-  }
+	}
 
 	// request作成
 	request, err := http.NewRequest("POST", baseUrl, bytes.NewBuffer(jsonString))
@@ -147,12 +149,12 @@ func Callback(c *gin.Context) {
 
 	// 認証
 	clinetId := os.Getenv("NOTION_CLIENT_ID")
-	clientSecret :=  os.Getenv("NOTION_SECRET")
+	clientSecret := os.Getenv("NOTION_SECRET")
 	request.SetBasicAuth(clinetId, clientSecret)
 
 	timeout := time.Duration(5 * time.Second)
 	client := &http.Client{
-    Timeout: timeout,
+		Timeout: timeout,
 	}
 	request.Header.Set("Content-Type", "application/json")
 
@@ -168,13 +170,13 @@ func Callback(c *gin.Context) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println(err)
-		return;
+		return
 	}
 
 	var tokenInfo TokenInfo
 	if err := json.Unmarshal(body, &tokenInfo); err != nil {
 		fmt.Println(err)
-		return;
+		return
 	}
 
 	fmt.Println(tokenInfo.AccessToken)
@@ -183,18 +185,18 @@ func Callback(c *gin.Context) {
 }
 
 type SearchRequestBody struct {
-  Query string `json:"query"`
+	Query string `json:"query"`
 }
 
 type Result struct {
-	Object      string      `json:"object"`
-	ID          string      `json:"id"`
-	Cover       interface{} `json:"cover"`
-	Icon struct {
+	Object string      `json:"object"`
+	ID     string      `json:"id"`
+	Cover  interface{} `json:"cover"`
+	Icon   struct {
 		Type  string `json:"type"`
 		Emoji string `json:"emoji"`
 	} `json:"icon"`
-	CreatedTime time.Time   `json:"created_time"`
+	CreatedTime time.Time `json:"created_time"`
 	CreatedBy   struct {
 		Object string `json:"object"`
 		ID     string `json:"id"`
@@ -255,8 +257,8 @@ type Result struct {
 	Archived bool   `json:"archived"`
 }
 type SearchResponse struct {
-	Object  string `json:"object"`
-	Results []Result `json:"results"`
+	Object         string      `json:"object"`
+	Results        []Result    `json:"results"`
 	NextCursor     interface{} `json:"next_cursor"`
 	HasMore        bool        `json:"has_more"`
 	Type           string      `json:"type"`
@@ -266,7 +268,7 @@ type SearchResponse struct {
 
 type Title struct {
 	Text string
-	Id string
+	Id   string
 }
 
 func SearchNotion(c *gin.Context) {
@@ -279,10 +281,10 @@ func SearchNotion(c *gin.Context) {
 
 	// json
 	jsonString, err := json.Marshal(requestBody)
-  if err != nil {
-    fmt.Println(err)
+	if err != nil {
+		fmt.Println(err)
 		return
-  }
+	}
 
 	r, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonString))
 	if err != nil {
@@ -292,7 +294,7 @@ func SearchNotion(c *gin.Context) {
 
 	timeout := time.Duration(5 * time.Second)
 	client := &http.Client{
-    Timeout: timeout,
+		Timeout: timeout,
 	}
 
 	authorization := "Bearer "
@@ -313,7 +315,7 @@ func SearchNotion(c *gin.Context) {
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		fmt.Println(err)
-		return;
+		return
 	}
 
 	fmt.Println(string(body))
@@ -321,7 +323,7 @@ func SearchNotion(c *gin.Context) {
 	var searchResponse SearchResponse
 	if err := json.Unmarshal(body, &searchResponse); err != nil {
 		fmt.Println(err)
-		return;
+		return
 	}
 
 	fmt.Println("-------------------")
@@ -337,7 +339,7 @@ func SearchNotion(c *gin.Context) {
 	for _, v := range databases {
 		title := Title{
 			Text: v.Title[0].Text.Content,
-			Id: v.ID,
+			Id:   v.ID,
 		}
 		titles = append(titles, title)
 	}
@@ -347,7 +349,7 @@ func SearchNotion(c *gin.Context) {
 	})
 }
 
-func Select(c *gin.Context)  {
+func Select(c *gin.Context) {
 	id := c.Param("id")
 	c.HTML(200, "select.html", gin.H{
 		"id": id,
