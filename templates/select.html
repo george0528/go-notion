@@ -13,6 +13,12 @@
     <input type="text" name="name">
     <label for="">最初の日</label>
     <input type="date" name="firstDay">
+    <label for="">日付を入れるプロパティ</label>
+    <select name="" id="">
+      {{range .properties}}
+        <option value="{{.}}">{{.}}</option>
+      {{end}}
+    </select>
     <label for="">間隔</label>
     <input type="number" name="interval">
     <label for="">回数</label>

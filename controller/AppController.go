@@ -225,30 +225,7 @@ type Result struct {
 	} `json:"title"`
 	Description []interface{} `json:"description"`
 	IsInline    bool          `json:"is_inline"`
-	Properties  struct {
-		NAMING_FAILED struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-			Type string `json:"type"`
-			Date struct {
-			} `json:"date"`
-		} `json:"日付"`
-		NAMING_FAILED0 struct {
-			ID          string `json:"id"`
-			Name        string `json:"name"`
-			Type        string `json:"type"`
-			MultiSelect struct {
-				Options []interface{} `json:"options"`
-			} `json:"multi_select"`
-		} `json:"タグ"`
-		NAMING_FAILED1 struct {
-			ID    string `json:"id"`
-			Name  string `json:"name"`
-			Type  string `json:"type"`
-			Title struct {
-			} `json:"title"`
-		} `json:"名前"`
-	} `json:"properties"`
+	Properties  map[string]interface{} `json:"properties"`
 	Parent struct {
 		Type      string `json:"type"`
 		Workspace bool   `json:"workspace"`
@@ -351,7 +328,56 @@ func SearchNotion(c *gin.Context) {
 
 func Select(c *gin.Context) {
 	id := c.Param("id")
+	url := notionUrl + "/databases/" + id
+
+	r, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	timeout := time.Duration(5 * time.Second)
+	client := &http.Client{
+		Timeout: timeout,
+	}
+
+	authorization := "Bearer "
+	authorization += myToken
+	r.Header.Set("Authorization", authorization)
+	r.Header.Set("Notion-Version", "2022-06-28")
+	r.Header.Set("Content-Type", "application/json")
+
+	request, err := client.Do(r)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer request.Body.Close()
+
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(string(body))
+
+	var selectResponse Result
+	if err := json.Unmarshal(body, &selectResponse); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("----------------")
+	var properties []string
+
+	for k, _ := range selectResponse.Properties {
+		properties = append(properties, k)
+	}
+
 	c.HTML(200, "select.html", gin.H{
 		"id": id,
+		"properties": properties,
 	})
 }
