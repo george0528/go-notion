@@ -225,7 +225,7 @@ type Result struct {
 	} `json:"title"`
 	Description []interface{} `json:"description"`
 	IsInline    bool          `json:"is_inline"`
-	Properties  map[string]interface{} `json:"properties"`
+	Properties  map[string]map[string]interface{} `json:"properties"`
 	Parent struct {
 		Type      string `json:"type"`
 		Workspace bool   `json:"workspace"`
@@ -372,8 +372,10 @@ func Select(c *gin.Context) {
 	fmt.Println("----------------")
 	var properties []string
 
-	for k, _ := range selectResponse.Properties {
-		properties = append(properties, k)
+	for k, v := range selectResponse.Properties {
+		if v["type"] == "date" {
+			properties = append(properties, k)
+		}
 	}
 
 	c.HTML(200, "select.html", gin.H{
