@@ -13,11 +13,11 @@ import (
 
 type Schedule struct {
 	gorm.Model
-  DbId string
-  Name string
-  FirstDay time.Time
-  Interval int
-	Time int
+	DbId     string
+	Name     string
+	FirstDay time.Time
+	Interval int
+	Time     int
 }
 
 //DBマイグレート
@@ -36,7 +36,7 @@ func main() {
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*.html")
 
-	router.GET("/", func(ctx *gin.Context){
+	router.GET("/", func(ctx *gin.Context) {
 		ctx.HTML(200, "index.html", gin.H{})
 	})
 
@@ -62,6 +62,10 @@ func main() {
 
 	router.GET("/select/:id", func(ctx *gin.Context) {
 		controller.Select(ctx)
+	})
+
+	router.POST("/schedule/:id", func(ctx *gin.Context) {
+		controller.AddPages(ctx)
 	})
 
 	router.Run()

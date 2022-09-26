@@ -383,3 +383,84 @@ func Select(c *gin.Context) {
 		"properties": properties,
 	})
 }
+
+type AddPageRequest struct {
+	Parent struct {
+		DatabaseID string `json:"database_id"`
+	} `json:"parent"`
+	Properties map[string]Property `json:"properties"`
+}
+type Property map[string]interface{}
+type NotionText struct {
+	Type string `json:"type"`
+	Text struct {
+		Content string `json:"content"`
+	} `json:"text"`
+}
+
+func AddPages(c *gin.Context) {
+	id := c.Param("id")
+	name := c.PostForm("name")
+	firstDay := c.PostForm("firstDay")
+	dateName := c.PostForm("dateName")
+	interval := c.PostForm("interval")
+	num := c.PostForm("num")
+
+	fmt.Println("interval:", interval)
+	fmt.Println("num:", num)
+	fmt.Println("firstDay:", firstDay)
+	fmt.Println("dateName:", dateName)
+	url := notionUrl + "/pages"
+
+	requestBody := new(AddPageRequest)
+	requestBody.Parent.DatabaseID = id
+	requestBody.Properties = make(map[string]Property)
+	// requestBody.Properties[dateName] = make(Property)
+	// requestBody.Properties[dateName]["start"] = firstDay
+	var notionText interface{} = NotionText{
+		Type: "text",
+		Text: struct{Content string "json:\"content\""}{Content: name},
+	}
+	requestBody.Properties["名前"] = make(Property)
+	requestBody.Properties["名前"]["title"] = []interface{}{notionText}
+
+	// json
+	jsonString, err := json.Marshal(requestBody)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	r, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonString))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(r)
+
+	timeout := time.Duration(5 * time.Second)
+	client := &http.Client{
+		Timeout: timeout,
+	}
+
+	authorization := "Bearer "
+	authorization += myToken
+	r.Header.Set("Authorization", authorization)
+	r.Header.Set("Notion-Version", "2022-06-28")
+	r.Header.Set("Content-Type", "application/json")
+	request, err := client.Do(r)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer request.Body.Close()
+
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(string(body))
+}
