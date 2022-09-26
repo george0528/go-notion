@@ -415,8 +415,8 @@ func AddPages(c *gin.Context) {
 	requestBody := new(AddPageRequest)
 	requestBody.Parent.DatabaseID = id
 	requestBody.Properties = make(map[string]Property)
-	// requestBody.Properties[dateName] = make(Property)
-	// requestBody.Properties[dateName]["start"] = firstDay
+	requestBody.Properties[dateName] = make(Property)
+	requestBody.Properties[dateName]["date"] = map[string]string{"start": firstDay}
 	var notionText interface{} = NotionText{
 		Type: "text",
 		Text: struct{Content string "json:\"content\""}{Content: name},
