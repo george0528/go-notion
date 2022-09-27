@@ -463,4 +463,11 @@ func AddPages(c *gin.Context) {
 	}
 
 	fmt.Println(string(body))
+
+	if request.StatusCode == http.StatusOK {
+		c.Redirect(http.StatusMovedPermanently, "/")
+		return
+	}
+
+	c.Redirect(http.StatusMovedPermanently, "/search")
 }
