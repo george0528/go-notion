@@ -9,13 +9,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
 // 定数
 const notionUrl = "https://api.notion.com/v1"
-
-var myToken string = ""
 
 // 関数
 func getClient() *http.Client {
@@ -26,9 +25,14 @@ func getClient() *http.Client {
 	return client
 }
 
-func setHeaders(r *http.Request) *http.Request {
+func setHeaders(r *http.Request, c *gin.Context) *http.Request {
+	session := sessions.Default(c);
 	authorization := "Bearer "
-	authorization += myToken
+	myToken := session.Get("token")
+	if myToken == nil {
+		myToken = ""
+	}
+	authorization += myToken.(string)
 	r.Header.Set("Authorization", authorization)
 	r.Header.Set("Notion-Version", "2022-06-28")
 	r.Header.Set("Content-Type", "application/json")
@@ -190,7 +194,10 @@ func Callback(c *gin.Context) {
 	}
 
 	fmt.Println(tokenInfo.AccessToken)
-	myToken = tokenInfo.AccessToken
+	myToken := tokenInfo.AccessToken
+	session := sessions.Default(c)
+	session.Set("token", myToken)
+	session.Save()
 	c.HTML(200, "home.html", gin.H{})
 }
 
@@ -280,7 +287,7 @@ func SearchNotion(c *gin.Context) {
 	}
 
 	client := getClient()
-	r = setHeaders(r)
+	r = setHeaders(r, c)
 
 	fmt.Println(r)
 	request, err := client.Do(r)
@@ -339,7 +346,7 @@ func Select(c *gin.Context) {
 	}
 
 	client := getClient()
-	r = setHeaders(r)
+	r = setHeaders(r, c)
 
 	request, err := client.Do(r)
 	if err != nil {
@@ -392,7 +399,7 @@ type NotionText struct {
 	} `json:"text"`
 }
 
-func addPageRequest(requestBody AddPageRequest, url string) *http.Response {
+func addPageRequest(requestBody AddPageRequest, url string, c *gin.Context) *http.Response {
 	// json
 	jsonString, err := json.Marshal(requestBody)
 	if err != nil {
@@ -408,7 +415,7 @@ func addPageRequest(requestBody AddPageRequest, url string) *http.Response {
 	fmt.Println(r)
 
 	client := getClient()
-	r = setHeaders(r)
+	r = setHeaders(r, c)
 	request, err := client.Do(r)
 	if err != nil {
 		fmt.Println(err)
@@ -459,7 +466,7 @@ func AddPages(c *gin.Context) {
 
 	requestBody := createRequestBody(id, name, dateName, firstDay)
 
-	request := addPageRequest(*requestBody, url)
+	request := addPageRequest(*requestBody, url, c)
 
 	if request.StatusCode == http.StatusOK {
 		c.Redirect(http.StatusMovedPermanently, "/")
