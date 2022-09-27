@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-contrib/sessions"
@@ -31,6 +32,7 @@ func setHeaders(r *http.Request, c *gin.Context) *http.Request {
 	myToken := session.Get("token")
 	if myToken == nil {
 		myToken = ""
+		// todo エラーを吐くようにする
 	}
 	authorization += myToken.(string)
 	r.Header.Set("Authorization", authorization)
@@ -440,7 +442,7 @@ func createRequestBody(id string, name string, dateName string, day string) *Add
 	requestBody.Parent.DatabaseID = id
 	requestBody.Properties = make(map[string]Property)
 	requestBody.Properties[dateName] = make(Property)
-	requestBody.Properties[dateName]["date"] = map[string]string{"start": day}
+	requestBody.Properties[dateName]["date"] = map[string]string{"start": day, "time_zone": "Asia/Tokyo"}
 	var notionText interface{} = NotionText{
 		Type: "text",
 		Text: struct{Content string "json:\"content\""}{Content: name},
@@ -450,28 +452,47 @@ func createRequestBody(id string, name string, dateName string, day string) *Add
 	return requestBody
 }
 
+const layout = "2006-01-02T15:04"
+func timeToString(t time.Time) string {
+	str := t.Format(layout)
+	return str
+}
+
+func stringToTime(str string) time.Time {
+	t, _ := time.Parse(layout, str)
+	return t
+}
+
+
 func AddPages(c *gin.Context) {
 	id := c.Param("id")
 	name := c.PostForm("name")
 	firstDay := c.PostForm("firstDay")
 	dateName := c.PostForm("dateName")
-	interval := c.PostForm("interval")
-	num := c.PostForm("num")
+	intervalStr := c.PostForm("interval")
+	numStr := c.PostForm("num")
 
-	fmt.Println("interval:", interval)
-	fmt.Println("num:", num)
+	fmt.Println("intervalStr:", intervalStr)
+	fmt.Println("num:", numStr)
 	fmt.Println("firstDay:", firstDay)
 	fmt.Println("dateName:", dateName)
 	url := notionUrl + "/pages"
 
-	requestBody := createRequestBody(id, name, dateName, firstDay)
+	num, _ := strconv.Atoi(numStr)
+	interval, _ := strconv.Atoi(intervalStr)
+	for i := 0; i < num; i++ {
+		date := firstDay
+		dateTime := stringToTime(date)
+		if i != 0 {
+			dateTime = dateTime.AddDate(0, 0, interval * i)
+		}
 
-	request := addPageRequest(*requestBody, url, c)
-
-	if request.StatusCode == http.StatusOK {
-		c.Redirect(http.StatusMovedPermanently, "/")
-		return
+		dateStr := timeToString(dateTime)
+		requestBody := createRequestBody(id, name, dateName, dateStr)
+		addPageRequest(*requestBody, url, c)
+		fmt.Println("------------------")
+		fmt.Println(i, time.Now())
 	}
 
-	c.Redirect(http.StatusMovedPermanently, "/search")
+	c.Redirect(http.StatusMovedPermanently, "/")
 }
