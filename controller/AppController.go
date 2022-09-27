@@ -393,6 +393,57 @@ type NotionText struct {
 	} `json:"text"`
 }
 
+func addPageRequest(requestBody AddPageRequest, url string) *http.Response {
+	// json
+	jsonString, err := json.Marshal(requestBody)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	r, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonString))
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	fmt.Println(r)
+
+	client := getClient()
+	r = setHeaders(r)
+	request, err := client.Do(r)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	defer request.Body.Close()
+
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	fmt.Println(string(body))
+
+	return request
+}
+
+func createRequestBody(id string, name string, dateName string, day string) *AddPageRequest {
+	requestBody := new(AddPageRequest)
+	requestBody.Parent.DatabaseID = id
+	requestBody.Properties = make(map[string]Property)
+	requestBody.Properties[dateName] = make(Property)
+	requestBody.Properties[dateName]["date"] = map[string]string{"start": day}
+	var notionText interface{} = NotionText{
+		Type: "text",
+		Text: struct{Content string "json:\"content\""}{Content: name},
+	}
+	requestBody.Properties["名前"] = make(Property)
+	requestBody.Properties["名前"]["title"] = []interface{}{notionText}
+	return requestBody
+}
+
 func AddPages(c *gin.Context) {
 	id := c.Param("id")
 	name := c.PostForm("name")
@@ -407,49 +458,9 @@ func AddPages(c *gin.Context) {
 	fmt.Println("dateName:", dateName)
 	url := notionUrl + "/pages"
 
-	requestBody := new(AddPageRequest)
-	requestBody.Parent.DatabaseID = id
-	requestBody.Properties = make(map[string]Property)
-	requestBody.Properties[dateName] = make(Property)
-	requestBody.Properties[dateName]["date"] = map[string]string{"start": firstDay}
-	var notionText interface{} = NotionText{
-		Type: "text",
-		Text: struct{Content string "json:\"content\""}{Content: name},
-	}
-	requestBody.Properties["名前"] = make(Property)
-	requestBody.Properties["名前"]["title"] = []interface{}{notionText}
+	requestBody := createRequestBody(id, name, dateName, firstDay)
 
-	// json
-	jsonString, err := json.Marshal(requestBody)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	r, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonString))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(r)
-
-	client := getClient()
-	r = setHeaders(r)
-	request, err := client.Do(r)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	defer request.Body.Close()
-
-	body, err := ioutil.ReadAll(request.Body)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println(string(body))
+	request := addPageRequest(*requestBody, url)
 
 	if request.StatusCode == http.StatusOK {
 		c.Redirect(http.StatusMovedPermanently, "/")
