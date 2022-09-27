@@ -18,6 +18,24 @@ const notionUrl = "https://api.notion.com/v1"
 
 var myToken string = ""
 
+// 関数
+func getClient() *http.Client {
+	timeout := time.Duration(5 * time.Second)
+	client := &http.Client{
+		Timeout: timeout,
+	}
+	return client
+}
+
+func setHeaders(r *http.Request) *http.Request {
+	authorization := "Bearer "
+	authorization += myToken
+	r.Header.Set("Authorization", authorization)
+	r.Header.Set("Notion-Version", "2022-06-28")
+	r.Header.Set("Content-Type", "application/json")
+	return r
+}
+
 func Index(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "this is AppController",
@@ -46,11 +64,7 @@ func Api(c *gin.Context) {
 	params.Add("userId", "3")
 	request.URL.RawQuery = params.Encode()
 
-	timeout := time.Duration(5 * time.Second)
-	client := &http.Client{
-		Timeout: timeout,
-	}
-
+	client := getClient()
 	r, err := client.Do(request)
 	if err != nil {
 		fmt.Println(err)
@@ -152,10 +166,7 @@ func Callback(c *gin.Context) {
 	clientSecret := os.Getenv("NOTION_SECRET")
 	request.SetBasicAuth(clinetId, clientSecret)
 
-	timeout := time.Duration(5 * time.Second)
-	client := &http.Client{
-		Timeout: timeout,
-	}
+	client := getClient()
 	request.Header.Set("Content-Type", "application/json")
 
 	// clientで実行
@@ -269,16 +280,8 @@ func SearchNotion(c *gin.Context) {
 		return
 	}
 
-	timeout := time.Duration(5 * time.Second)
-	client := &http.Client{
-		Timeout: timeout,
-	}
-
-	authorization := "Bearer "
-	authorization += myToken
-	r.Header.Set("Authorization", authorization)
-	r.Header.Set("Notion-Version", "2022-06-28")
-	r.Header.Set("Content-Type", "application/json")
+	client := getClient()
+	r = setHeaders(r)
 
 	fmt.Println(r)
 	request, err := client.Do(r)
@@ -336,16 +339,8 @@ func Select(c *gin.Context) {
 		return
 	}
 
-	timeout := time.Duration(5 * time.Second)
-	client := &http.Client{
-		Timeout: timeout,
-	}
-
-	authorization := "Bearer "
-	authorization += myToken
-	r.Header.Set("Authorization", authorization)
-	r.Header.Set("Notion-Version", "2022-06-28")
-	r.Header.Set("Content-Type", "application/json")
+	client := getClient()
+	r = setHeaders(r)
 
 	request, err := client.Do(r)
 	if err != nil {
@@ -438,16 +433,8 @@ func AddPages(c *gin.Context) {
 	}
 	fmt.Println(r)
 
-	timeout := time.Duration(5 * time.Second)
-	client := &http.Client{
-		Timeout: timeout,
-	}
-
-	authorization := "Bearer "
-	authorization += myToken
-	r.Header.Set("Authorization", authorization)
-	r.Header.Set("Notion-Version", "2022-06-28")
-	r.Header.Set("Content-Type", "application/json")
+	client := getClient()
+	r = setHeaders(r)
 	request, err := client.Do(r)
 	if err != nil {
 		fmt.Println(err)
