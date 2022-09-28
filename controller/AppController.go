@@ -55,8 +55,7 @@ type Post struct {
 }
 
 func Api(c *gin.Context) {
-	url := "https://api.notion.com/v1/oauth/authorize"
-	url = "https://jsonplaceholder.typicode.com/posts"
+	url := "https://jsonplaceholder.typicode.com/posts"
 
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -268,7 +267,6 @@ type Title struct {
 }
 
 func SearchNotion(c *gin.Context) {
-	fmt.Println("test")
 	url := notionUrl + "/search"
 
 	keyword := c.PostForm("keyword")
@@ -472,10 +470,6 @@ func AddPages(c *gin.Context) {
 	intervalStr := c.PostForm("interval")
 	numStr := c.PostForm("num")
 
-	fmt.Println("intervalStr:", intervalStr)
-	fmt.Println("num:", numStr)
-	fmt.Println("firstDay:", firstDay)
-	fmt.Println("dateName:", dateName)
 	url := notionUrl + "/pages"
 
 	num, _ := strconv.Atoi(numStr)
@@ -490,8 +484,6 @@ func AddPages(c *gin.Context) {
 		dateStr := timeToString(dateTime)
 		requestBody := createRequestBody(id, name, dateName, dateStr)
 		addPageRequest(*requestBody, url, c)
-		fmt.Println("------------------")
-		fmt.Println(i, time.Now())
 	}
 
 	c.Redirect(http.StatusMovedPermanently, "/")
