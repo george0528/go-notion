@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	validation "github.com/go-ozzo/ozzo-validation"
 )
 
 // 定数
@@ -473,6 +474,14 @@ func AddPages(c *gin.Context) {
 	url := notionUrl + "/pages"
 
 	num, _ := strconv.Atoi(numStr)
+	err := validation.Validate(num,
+		validation.Required,       // not empty
+		validation.Length(1, 10), // length between 1 and 10
+	)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	interval, _ := strconv.Atoi(intervalStr)
 	for i := 0; i < num; i++ {
 		date := firstDay
