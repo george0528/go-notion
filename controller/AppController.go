@@ -482,6 +482,21 @@ func AddPages(c *gin.Context) {
 		fmt.Println(err)
 	}
 
+	errId := validation.Validate(id,
+		validation.Required,
+	)
+	if errId != nil {
+		fmt.Println(errId)
+	}
+
+	errName := validation.Validate(name,
+		validation.Required,
+	)
+
+	if errName != nil {
+		fmt.Println(errName)
+	}
+
 	interval, _ := strconv.Atoi(intervalStr)
 	for i := 0; i < num; i++ {
 		date := firstDay
